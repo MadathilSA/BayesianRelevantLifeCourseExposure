@@ -1,0 +1,24 @@
+model{
+  for(n in 1:N){
+    xb2[n] = delta*(expMat[n,1:pos[n]]%*%w[1:pos[n]])
+    
+    logit(pr[n]) = conMat[n,1:ncon]%*%betas[1:ncon] +  xb2[n]
+    
+    Status[n] ~ dbern(pr[n])
+  }
+  
+  betas[1] ~ dt(0,0.04,3)  #Student_t(3,0,5)
+  
+  for(i in 2:ncon){
+    betas[i] ~ dt(0,0.16,3)
+  }
+  
+  delta  ~ dt(0,0.16,3)T(0,)
+  
+  w[1:t] ~ ddirch(p_alpha[1:t])
+  
+  OR = exp(delta)
+  
+  hyp = (w[3] > w[1]) && (w[3] > w[2])
+
+}

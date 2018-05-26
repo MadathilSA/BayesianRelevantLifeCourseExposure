@@ -1,0 +1,42 @@
+data{
+  alp <- c(1,1,1)
+  one <- 1
+}
+model{
+  for(n in 1:N){
+    xb2[n] = deltaR[coho[n]]*(expMat[n,1:pos[n]]%*%w[1:pos[n],coho[n]])
+    
+    logit(pr[n]) = b0 + bage*age[n] + bmale*male[n] + bedu*edu[n] + balc*alc[n] +  xb2[n]
+    
+    Status[n] ~ dbern(pr[n])
+  }
+  b0     ~ dt(0,0.04,3)  #Student_t(3,0,5)
+  bage   ~ dt(0,0.16,3)  #Student_t(3,0,2.5)
+  bmale  ~ dt(0,0.16,3)
+  bedu   ~ dt(0,0.16,3)
+  balc   ~ dt(0,0.16,3)
+  delta  ~ dt(0,0.16,3)T(0,)
+
+  phi[1:t] ~ ddirch(alp[1:t])
+
+  for(i in 1:ncoho){
+    deltaR[i] = delta+etau[i]
+    etau[i] ~ dnorm(0,tau)  
+  }
+  
+  tau <- pow(sig,-2)
+  sig ~ dt(0,1,4)T(0,)
+  
+  for(i in 1:ncoho){
+    w[1:t,i] ~ ddirch(phi[1:t])
+  }
+ 
+  one ~ dbern(CI)
+  CI <- step(delta)*step(deltaR[1])*step(deltaR[2])*step(deltaR[3])*step(deltaR[4])
+  
+  for(i in 1:t){
+    ors[i] = exp(delta*phi[i]) 
+  }
+  
+  or = exp(delta)
+}

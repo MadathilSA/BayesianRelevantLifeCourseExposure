@@ -1,0 +1,55 @@
+model{
+  #---variables-------
+  # N = total sample size
+  # ncon = number of confounders
+  # ncon2 = number of predictors for imputation model
+  # X = matrix of exposure meausures in three periods
+  # y = case-control status
+  # conMat = matrix of confounders
+  # mdi = material deprivation index
+  # conMat2 = matrix of standardized covariates for imputation model (including intercept)
+  #---------------------
+
+#Likelihoods
+
+  for(n in 1:N){
+  
+  #Analysis model
+      logit(xb[n]) = alpha + delta*(X[n,1:pos[n]] %*% w[1:pos[n]]) + (conMat[n,1:ncon] %*% beta[1:ncon]) + beta[ncon+1]*mdi[n]
+      y[n] ~ dbern(xb[n])
+      
+  #Model for imputation (Binomial model)
+      logit(xb2[n]) = conMat2[n,1:ncon2] %*% gamma[1:ncon2]
+      mdi[n] ~ dbin(xb2[n],34)
+  }
+  
+#Priors for fixed effect
+  
+  alpha ~ dt(0,0.04,3)
+  
+  delta ~ dt(0,0.16,3)T(0,)
+  
+  beta[ncon+1] ~ dt(0,0.16,3)
+  
+  for(i in 1:ncon){
+    beta[i] ~ dnorm(0,1)
+  }
+  
+#Priors for imputation model (normal(0,1) & normal(0,5))
+  gamma[1] ~ dnorm(0,0.04)
+  
+  for(i in 2:ncon2){
+    gamma[i] ~ dnorm(0,1)
+  }
+  
+
+#First age cohort has only two periods of exposures
+  
+  w[1:t] ~ ddirch(p_alpha[1:t])
+
+#Calculating ORs
+  OR = exp(delta)
+  
+#Hypos
+  hyp = (w[3] > w[1]) && (w[3] > w[2])
+}

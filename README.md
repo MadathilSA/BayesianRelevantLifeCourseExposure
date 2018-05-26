@@ -1,1 +1,1 @@
-# BayesianRelevantLifeCourseExposure
+# Bayesian Relevant LifeCourse Exposure
